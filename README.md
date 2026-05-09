@@ -89,7 +89,7 @@ streamlit run app.py
 
 ## 📥 Sample Data
 
-Use `sample_data.csv` to test the application and understand the expected input format.
+Use `Sample data to test.csv` to test the application and understand the expected input format.
 
 
 ## 📋 Requirements
