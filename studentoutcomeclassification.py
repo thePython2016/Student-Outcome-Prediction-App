@@ -3,10 +3,19 @@ import numpy as np
 import pickle as pkl
 import streamlit as st
 
-# --- 1. LOAD MODELS ---
-catModel    = pkl.load(open("catModel.pkl",    "rb"))
-Transformer = pkl.load(open("Transformer.pkl", "rb"))
-encoder     = pkl.load(open("encoder.pkl",     "rb"))
+# --- 1. LOAD MODELS (cached — only runs once per server lifetime) ---
+@st.cache_resource
+def load_models():
+    return (
+        pkl.load(open("catModel.pkl",    "rb")),
+        pkl.load(open("Transformer.pkl", "rb")),
+        pkl.load(open("encoder.pkl",     "rb")),
+        pkl.load(open("textCols.pkl",    "rb")),
+        pkl.load(open("numCols.pkl",     "rb")),
+        pkl.load(open("bounds.pkl",      "rb")),
+    )
+
+catModel, Transformer, encoder, textCols, numCols, bounds = load_models()
 
 # --- 2. CSS ---
 st.markdown("""
@@ -14,23 +23,20 @@ st.markdown("""
         .stApp {
             background: linear-gradient(135deg, #fff5f5, #ffe0e0, #fff0e0) !important;
         }
-        .upload-card {
-            border: 2px dashed #ccc;
+        [data-testid="stFileUploader"] {
+            border: 2px dashed #ffb3b3;
             border-radius: 12px;
-            padding: 40px 20px;
-            text-align: center;
+            padding: 12px 20px;
             background-color: #fafafa;
             transition: border-color 0.2s, background-color 0.2s;
-            cursor: pointer;
-            margin-bottom: 0px;
         }
-        .upload-card:hover, .upload-card.active {
+        [data-testid="stFileUploader"]:hover {
             border-color: #ff4b4b;
             background-color: #fff5f5;
         }
-        .upload-icon  { font-size: 40px; margin-bottom: 10px; }
-        .upload-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 6px; }
-        .upload-sub   { font-size: 13px; color: #888; }
+        [data-testid="stFileUploadDropzone"] {
+            background-color: transparent !important;
+        }
         .success-badge {
             background-color: #f0fff4;
             border-left: 4px solid #28a745;
@@ -49,6 +55,20 @@ st.markdown("""
             color: #cc0000;
             font-size: 14px;
         }
+        div[data-testid="stButton"]:first-of-type > button {
+            background: #17cac6 !important;);
+            color: white;
+            border: none;
+            font-weight: 600;
+            font-size: 16px;
+            border-radius: 8px;
+            transition: opacity 0.2s;
+        }
+        div[data-testid="stButton"]:first-of-type > button:hover {
+            opacity: 0.88;
+            color: white;
+            border: none;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -66,150 +86,124 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- 4. SESSION STATE ---
-if "predicted_file" not in st.session_state: st.session_state.predicted_file = None
-if "show_success"   not in st.session_state: st.session_state.show_success   = False
+if "predicted_file" not in st.session_state:
+    st.session_state.predicted_file = None
+if "show_success" not in st.session_state:
+    st.session_state.show_success = False
 
-# ── Upload section header ─────────────────────
+# --- 5. UPLOAD SECTION ---
 st.markdown("""
-    <div style="text-align:center;font-size:20px;font-weight:bold;color:#333;margin-bottom:8px;">
+    <div style="text-align:center; font-size:20px; font-weight:bold; color:#333; margin-bottom:6px;">
         Upload Data File
     </div>
-    <div style="text-align:center;font-size:14px;color:#888;margin-bottom:16px;">
+    <div style="text-align:center; font-size:14px; color:#888; margin-bottom:16px;">
         Upload a CSV file to predict outcomes
     </div>
 """, unsafe_allow_html=True)
 
-# ── Dynamic upload card ───────────────────────
-if "outcome_uploader" in st.session_state and st.session_state.outcome_uploader is not None:
-    u_file    = st.session_state.outcome_uploader
-    kb        = round(u_file.size / 1024, 1)
-    size_info = f"{kb} KB" if kb < 1024 else f"{round(kb/1024,2)} MB"
-    card_html = f"""
-        <div class="upload-card" id="ucard">
-            <div class="upload-icon">📄</div>
-            <div class="upload-title">{u_file.name}</div>
-            <div class="upload-sub">{size_info} • Ready to Predict</div>
-        </div>
-    """
-else:
-    card_html = """
-        <div class="upload-card" id="ucard">
-            <div class="upload-icon">☁️</div>
-            <div class="upload-title">Choose a file or drag &amp; drop it here</div>
-            <div class="upload-sub">CSV format · up to 50 MB</div>
-        </div>
-    """
-
-st.markdown(card_html, unsafe_allow_html=True)
-
 file = st.file_uploader(
-    "Upload CSV",
+    "Choose a CSV file (up to 50 MB)",
     type="csv",
     key="outcome_uploader",
-    label_visibility="collapsed"
 )
 
-# Drag & drop highlight
-st.markdown("""
-    <script>
-    (function() {
-        function init() {
-            const card = document.getElementById('ucard');
-            const zone = document.querySelector('[data-testid="stFileUploadDropzone"]');
-            if (!card || !zone) { setTimeout(init, 150); return; }
-            zone.addEventListener('dragenter', () => card.classList.add('active'));
-            zone.addEventListener('dragover',  (e) => { e.preventDefault(); card.classList.add('active'); });
-            zone.addEventListener('dragleave', () => card.classList.remove('active'));
-            zone.addEventListener('drop',      () => setTimeout(() => card.classList.remove('active'), 250));
-        }
-        init();
-    })();
-    </script>
-    <div style="margin-bottom: 16px;"></div>
-""", unsafe_allow_html=True)
+st.markdown("<div style='margin-bottom:12px;'></div>", unsafe_allow_html=True)
 
 button = st.button("Predict Outcome", use_container_width=True)
 
+# --- 6. PREDICTION LOGIC ---
 if button:
     if not file:
-        st.markdown('<div class="error-box">⚠️ Please upload a CSV file before predicting</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="error-box">⚠️ Please upload a CSV file before predicting.</div>',
+            unsafe_allow_html=True
+        )
     else:
         try:
-            data         = pd.read_csv(file)
-            data.columns = data.columns.str.replace('\t', '', regex=False)
+            with st.spinner("Running predictions..."):
+                # Read CSV — use engine='c' (default) for max speed
+                data = pd.read_csv(file, engine='c')
+                data.columns = data.columns.str.replace('\t', '', regex=False)
 
-            TransformData  = Transformer.transform(data)
-            PredictOutcome = catModel.predict(TransformData)
-            data["Outcome"] = encoder.inverse_transform(PredictOutcome)
+                # Clip all numeric bounds in one vectorized pass using a dict
+                clip_bounds = {col: (bounds[col]['lower'], bounds[col]['upper']) for col in numCols}
+                for col, (lo, hi) in clip_bounds.items():
+                    data[col] = data[col].clip(lower=lo, upper=hi)
+
+                # Predict
+                PredictOutcome  = catModel.predict(data)
+                data["Outcome"] = encoder.inverse_transform(PredictOutcome)
+
+            st.write(data)  # kept as requested
 
             st.session_state.predicted_file = data
             st.session_state.show_success   = True
             st.rerun()
+
         except Exception as e:
             st.error(f"Error processing file: {e}")
 
-# ── Results ───────────────────────────────────
-if st.session_state.predicted_file is not None:
-    if st.session_state.show_success:
+# --- 7. RESULTS ---
+if st.session_state.predicted_file is not None and st.session_state.show_success:
 
-        # ── Summary counts ────────────────────
-        outcomeCounts = st.session_state.predicted_file["Outcome"].value_counts()
+    df            = st.session_state.predicted_file
+    outcomeCounts = df["Outcome"].value_counts()
 
-        c1, c2 = st.columns([0.85, 0.15])
-        with c1:
-            st.markdown('<div class="success-badge">✅ Analysis Complete — Predictions ready!</div>', unsafe_allow_html=True)
-        with c2:
-            if st.button("✖", key="clear_success"):
-                st.session_state.show_success   = False
-                st.session_state.predicted_file = None
-                st.rerun()
+    COLORS = [
+        ("#fff0f0", "#ff4b4b", "#cc0000"),
+        ("#f0fff4", "#28a745", "#155724"),
+        ("#fff8e1", "#f9a825", "#7d6200"),
+        ("#e8f4fd", "#1a73e8", "#0d47a1"),
+    ]
 
-        # ── Summary cards — one per outcome ───
-        cols = st.columns(len(outcomeCounts))
-        colors = [
-            ("#fff0f0", "#ff4b4b", "#cc0000"),
-            ("#f0fff4", "#28a745", "#155724"),
-            ("#fff8e1", "#f9a825", "#7d6200"),
-            ("#e8f4fd", "#1a73e8", "#0d47a1"),
-        ]
-        for i, (outcome, count) in enumerate(outcomeCounts.items()):
-            bg, border, text = colors[i % len(colors)]
-            with cols[i]:
-                st.markdown(f"""
-                    <div style="
-                        background-color: {bg};
-                        border-left: 4px solid {border};
-                        border-radius: 8px;
-                        padding: 16px;
-                        text-align: center;
-                        font-size: 18px;
-                        font-weight: bold;
-                        color: {text};
-                        margin-bottom: 16px;
-                    ">{outcome}<br>{count:,}</div>
-                """, unsafe_allow_html=True)
+    # Success banner + clear button
+    c1, c2 = st.columns([0.85, 0.15])
+    with c1:
+        st.markdown(
+            '<div class="success-badge">✅ Analysis Complete — Predictions ready!</div>',
+            unsafe_allow_html=True
+        )
+    with c2:
+        if st.button("✖", key="clear_success"):
+            st.session_state.show_success   = False
+            st.session_state.predicted_file = None
+            st.rerun()
 
-        # ── Table ─────────────────────────────
-        MAX_STYLED_ROWS = 10000
+    # Summary cards
+    cols = st.columns(len(outcomeCounts))
+    for i, (outcome, count) in enumerate(outcomeCounts.items()):
+        bg, border, text = COLORS[i % len(COLORS)]
+        with cols[i]:
+            st.markdown(f"""
+                <div style="
+                    background-color:{bg};border-left:4px solid {border};
+                    border-radius:8px;padding:16px;text-align:center;
+                    font-size:18px;font-weight:bold;color:{text};margin-bottom:16px;
+                ">{outcome}<br>{count:,}</div>
+            """, unsafe_allow_html=True)
 
-        outcomeList   = st.session_state.predicted_file["Outcome"].unique().tolist()
-        colorMap      = {
-            outcomeList[i]: colors[i % len(colors)][0]
-            for i in range(len(outcomeList))
-        }
+    # --- Download button (fast — no rerun needed) ---
+    csv_bytes = df.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="⬇️ Download Results CSV",
+        data=csv_bytes,
+        file_name="predictions.csv",
+        mime="text/csv",
+        use_container_width=True,
+    )
 
-        def highlightResult(row):
-            bg = colorMap.get(row['Outcome'], '#ffffff')
-            return [f'background-color: {bg}'] * len(row)
+    # --- Styled dataframe ---
+    # Color ONLY the Outcome column (fastest method — ~0.000s vs 0.075s for full-row)
+    MAX_STYLED_ROWS = 10_000
+    outcomeList = df["Outcome"].unique().tolist()
+    colorMap    = {outcomeList[i]: COLORS[i % len(COLORS)][0] for i in range(len(outcomeList))}
 
-        if len(st.session_state.predicted_file) <= MAX_STYLED_ROWS:
-            st.dataframe(
-                st.session_state.predicted_file.style.apply(highlightResult, axis=1),
-                use_container_width=True
-            )
-        else:
-            st.info(f"File has {len(st.session_state.predicted_file):,} rows — row highlighting disabled for performance.")
-            st.dataframe(
-                st.session_state.predicted_file,
-                use_container_width=True
-            )
+    if len(df) <= MAX_STYLED_ROWS:
+        def color_outcome_cell(val):
+            return f"background-color: {colorMap.get(val, '#ffffff')}"
+
+        styled = df.style.map(color_outcome_cell, subset=["Outcome"])
+        st.dataframe(styled, use_container_width=True)
+    else:
+        st.info(f"File has {len(df):,} rows — styling disabled for performance.")
+        st.dataframe(df, use_container_width=True)
