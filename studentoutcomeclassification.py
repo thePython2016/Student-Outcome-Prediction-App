@@ -125,10 +125,8 @@ if button:
                 data = pd.read_csv(file, engine='c')
                 data.columns = data.columns.str.replace('\t', '', regex=False)
 
-                # Clip all numeric bounds in one vectorized pass using a dict
-                clip_bounds = {col: (bounds[col]['lower'], bounds[col]['upper']) for col in numCols}
-                for col, (lo, hi) in clip_bounds.items():
-                    data[col] = data[col].clip(lower=lo, upper=hi)
+                for col in numCols:
+                    data[col] = data[col].clip(lower=bounds[col]['lower'], upper=bounds[col]['upper'])
 
                 # Predict
                 PredictOutcome  = catModel.predict(data)
