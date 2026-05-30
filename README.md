@@ -1,84 +1,77 @@
 # Student Outcome Prediction App
 
-A machine learning web application designed to predict whether a student is likely to **Dropout, Enroll, or Graduate** based on academic and demographic data, with primary focus on identifying students at risk of dropping out and those likely to graduate.
+A machine learning web application that predicts whether a student is likely to Dropout, Enroll, or Graduate based on academic and demographic data.
 
-🔗 Live App: https://mystudent-outcome-prediction-app.streamlit.app/
+The primary focus of the model is identifying students at risk of dropping out and distinguishing them from students likely to graduate.
+
+🔗 **Live Demo:** https://mystudent-outcome-prediction-app.streamlit.app/
+
+---
+
+#  Model Performance
+
+## Overall Metrics
+
+| Metric                 | Score  |
+| ---------------------- | ------ |
+| Accuracy               | 0.7674 |
+| Macro Avg Precision    | 0.7638 |
+| Macro Avg Recall       | 0.7111 |
+| Macro Avg F1-Score     | 0.7265 |
+| Weighted Avg Precision | 0.7900 |
+| Weighted Avg Recall    | 0.7674 |
+| Weighted Avg F1-Score  | 0.7665 |
 
 ---
 
-## Model Performance
+## Classification Report
 
-| Class    | Precision | Recall | F1-Score |
-| -------- | --------- | ------ | -------- |
-| Dropout  | 1.00      | 0.73   | 0.85     |
-| Enrolled | 0.57      | 0.50   | 0.53     |
-| Graduate | 0.72      | 0.90   | 0.80     |
+| Class    | Precision | Recall | F1-Score | Support |
+| -------- | --------- | ------ | -------- | ------- |
+| Dropout  | 1.00      | 0.73   | 0.85     | 15      |
+| Enrolled | 0.57      | 0.50   | 0.53     | 8       |
+| Graduate | 0.72      | 0.90   | 0.80     | 20      |
 
-| Metric          | Score |
-| --------------- | ----- |
-| Accuracy        | 0.767 |
-| Macro Avg F1    | 0.726 |
-| Weighted Avg F1 | 0.766 |
-
-> The primary goal of this project is to identify students at risk of dropping out and distinguish them from students likely to graduate.
-> The model shows strong performance in detecting dropout and graduate outcomes using precision, recall, and F1-score metrics.
-
-
-
-##  Features
-
-* 📂 Upload CSV file with student data
-* 🔍 Predict student outcomes (Dropout, Enrolled, Graduate)
-* 🎯 Main focus on identifying Dropout and Graduate students
-* 📊 Displays prediction results instantly
-* ⬇️ Download predictions as CSV
-* 🤖 Powered by an XGBoost machine learning classification model
-
----
+> The model demonstrates strong performance in identifying students likely to drop out and graduate.
+> Precision, Recall, and F1-Score are used as the primary evaluation metrics to measure classification effectiveness across different student outcomes.
 
 
 ##  Model Details
 
 * Algorithm: XGBoost Classifier (`XGBClassifier`)
 
-* Frameworks & Libraries:
+* Preprocessing: Feature transformation pipeline
 
-  * Scikit-learn
-  * XGBoost
-  * Pandas
-  * NumPy
+* Input Features:
 
-* Target Classes:
+  * Academic performance indicators
+  * Demographic information
+  * Student behavioral features
+
+* Output: Predicted student outcome
 
   * Dropout
   * Enrolled
   * Graduate
 
-* Evaluation Metrics:
+##  Project Structure
 
-  * Precision
-  * Recall
-  * F1-score
-  * Accuracy
-
-* Primary Evaluation Focus:
-
-  * Dropout detection 
-  * Graduate prediction performance
-
-
-
-##  Run Locally
+```bash id="suv4yu"
+├── app.py                  # Streamlit application
+├── model.pkl               # Trained ML model
+├── transformer.pkl         # Preprocessing pipeline
+├── columns.pkl             # Expected feature columns
+├── sample_data.csv         # Example input file
+├── requirements.txt        # Dependencies
+└── README.md
 
 ### 1. Clone the repository
 
-
-git clone https://github.com/thePython2016/studentScorePredictionModel.git
-
-cd studentScorePredictionModel
+git clone https://github.com/thePython2016/studentOutcomePredictionApp.git
+cd studentOutcomePredictionApp
 
 
-###  Install dependencies
+### 2. Install dependencies
 
 pip install -r requirements.txt
 
@@ -89,21 +82,12 @@ streamlit run app.py
 
 ## 📥 Sample Data
 
-Use `Sample data to test.csv` to test the application and understand the expected input format.
-
-
-## 📋 Requirements
-
-See `requirements.txt` for full dependencies.
+Use the provided `sample_data.csv` to test the app format.
 
 ## 📌 How to Use
 
 1. Open the live app
-2. Upload a CSV file (use sample format)
+2. Upload a CSV file containing student data
 3. Click **Predict**
 4. View predicted student outcomes
 5. Download results as CSV
-
-
-
-
