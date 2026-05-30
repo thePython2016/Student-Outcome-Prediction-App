@@ -54,16 +54,6 @@ The primary focus of the model is identifying students at risk of dropping out a
   * Enrolled
   * Graduate
 
-##  Project Structure
-
-```bash id="suv4yu"
-├── app.py                  # Streamlit application
-├── model.pkl               # Trained ML model
-├── transformer.pkl         # Preprocessing pipeline
-├── columns.pkl             # Expected feature columns
-├── sample_data.csv         # Example input file
-├── requirements.txt        # Dependencies
-└── README.md
 
 ### 1. Clone the repository
 
@@ -80,14 +70,8 @@ pip install -r requirements.txt
 
 streamlit run app.py
 
-## 📥 Sample Data
+##  Sample Data
 
 Use the provided `sample_data.csv` to test the app format.
 
-## 📌 How to Use
 
-1. Open the live app
-2. Upload a CSV file containing student data
-3. Click **Predict**
-4. View predicted student outcomes
-5. Download results as CSV
