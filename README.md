@@ -1,6 +1,6 @@
-# Student Outcome Prediction App
+# 🎓 Student Outcome Prediction App
 
-A machine learning web application that predicts whether a student is likely to Dropout, Enroll, or Graduate based on academic and demographic data.
+A machine learning web application that predicts whether a student is likely to **Dropout**, **Enroll**, or **Graduate** based on academic and demographic data.
 
 The primary focus of the model is identifying students at risk of dropping out and distinguishing them from students likely to graduate.
 
@@ -8,35 +8,33 @@ The primary focus of the model is identifying students at risk of dropping out a
 
 ---
 
-#  Model Performance
+# 📊 Model Performance
 
 ## Overall Metrics
 
-| Metric                 | Score  |
+| Metric | Score |
 | ---------------------- | ------ |
-| Accuracy               | 0.7674 |
-| Macro Avg Precision    | 0.7638 |
-| Macro Avg Recall       | 0.7111 |
-| Macro Avg F1-Score     | 0.7265 |
-| Weighted Avg Precision | 0.7900 |
-| Weighted Avg Recall    | 0.7674 |
-| Weighted Avg F1-Score  | 0.7665 |
+| Accuracy | 0.7470 |
+| Macro Avg Precision | 0.7159 |
+| Macro Avg Recall | 0.7186 |
+| Macro Avg F1-Score | 0.7119 |
+| Weighted Avg Precision | 0.7708 |
+| Weighted Avg Recall | 0.7470 |
+| Weighted Avg F1-Score | 0.7551 |
 
 ---
 
 ## Classification Report
 
-| Class    | Precision | Recall | F1-Score | Support |
+| Class | Precision | Recall | F1-Score | Support |
 | -------- | --------- | ------ | -------- | ------- |
-| Dropout  | 1.00      | 0.73   | 0.85     | 15      |
-| Enrolled | 0.57      | 0.50   | 0.53     | 8       |
-| Graduate | 0.72      | 0.90   | 0.80     | 20      |
+| Dropout | 0.8291 | 0.7150 | 0.7678 | 414 |
+| Enrolled | 0.4690 | 0.6285 | 0.5372 | 253 |
+| Graduate | 0.8497 | 0.8124 | 0.8306 | 661 |
 
-> The model demonstrates strong performance in identifying students likely to drop out and graduate.
-> Precision, Recall, and F1-Score are used as the primary evaluation metrics to measure classification effectiveness across different student outcomes.
-
-
-##  Model Details
+> The model demonstrates strong performance in identifying students likely to graduate and students at risk of dropping out. The Dropout class achieves a Precision of 0.8291, Recall of 0.7150, and F1-Score of 0.7678, while the Graduate class achieves a Precision of 0.8497, Recall of 0.8124, and F1-Score of 0.8306. Precision, Recall, and F1-Score are used as the primary evaluation metrics to measure classification effectiveness across different student outcomes.
+> 
+## Model Detail
 
 * Algorithm: XGBoost Classifier (`XGBClassifier`)
 
@@ -54,7 +52,6 @@ The primary focus of the model is identifying students at risk of dropping out a
   * Enrolled
   * Graduate
 
-
 ### 1. Clone the repository
 
 git clone https://github.com/thePython2016/studentOutcomePredictionApp.git
@@ -68,6 +65,7 @@ pip install -r requirements.txt
 
 ### 3. Run the app
 
+
 streamlit run app.py
 
 ##  Sample Data
@@ -75,3 +73,7 @@ streamlit run app.py
 Use the provided `sample_data.csv` to test the app format.
 
 
+
+## 📜 License
+
+This project is open source and available under the MIT License.
