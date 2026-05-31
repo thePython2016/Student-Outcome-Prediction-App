@@ -1,4 +1,4 @@
-# 🎓 Student Outcome Prediction App
+#  Student Outcome Prediction App
 
 A machine learning web application that predicts whether a student is likely to **Dropout**, **Enroll**, or **Graduate** based on academic and demographic data.
 
@@ -8,7 +8,7 @@ The primary focus of the model is identifying students at risk of dropping out a
 
 ---
 
-# 📊 Model Performance
+#  Model Performance
 
 ## Overall Metrics
 
