@@ -29,7 +29,6 @@ The primary focus of the model is identifying students at risk of dropping out a
 | Class | Precision | Recall | F1-Score | Support |
 | -------- | --------- | ------ | -------- | ------- |
 | Dropout | 0.8291 | 0.7150 | 0.7678 | 414 |
-| Enrolled | 0.4690 | 0.6285 | 0.5372 | 253 |
 | Graduate | 0.8497 | 0.8124 | 0.8306 | 661 |
 
 > The model demonstrates strong performance in identifying students likely to graduate and students at risk of dropping out. The Dropout class achieves a Precision of 0.8291, Recall of 0.7150, and F1-Score of 0.7678, while the Graduate class achieves a Precision of 0.8497, Recall of 0.8124, and F1-Score of 0.8306. Precision, Recall, and F1-Score are used as the primary evaluation metrics to measure classification effectiveness across different student outcomes.
